@@ -44,6 +44,9 @@ jobs:
           echo "frontend_tag=ghcr.io/cyberashven/bch-explorer-frontend:$SHA" >> $GITHUB_OUTPUT
           echo "backend_tag=ghcr.io/cyberashven/bch-explorer-backend:$SHA" >> $GITHUB_OUTPUT
 
+      - name: Prepare Docker build contexts (copy Dockerfiles into source dirs)
+        run: cd bch-explorer-src && sh docker/init.sh
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -63,9 +66,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: bch-explorer-src/frontend
-          build-contexts: |
-            rustgbt=bch-explorer-src/rust
-            backend=bch-explorer-src/backend
           push: true
           tags: ${{ steps.meta.outputs.frontend_tag }},ghcr.io/cyberashven/bch-explorer-frontend:latest
           cache-from: type=gha
