@@ -43,7 +43,11 @@ jobs:
 
       - name: Extract version
         id: version
-        uses: start9labs/shared-workflows/.github/actions/extract-version@master
+        run: |
+          FIRST_S9PK=$(ls *.s9pk | head -1)
+          VERSION=$(start-cli s9pk inspect "$FIRST_S9PK" manifest | jq -r .version)
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${VERSION}"
 
       - name: Generate changelog
         run: |
