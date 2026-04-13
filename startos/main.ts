@@ -1,24 +1,8 @@
-import { readFileSync } from 'fs'
 import { sdk } from './sdk'
 import { webPort, dbPort } from './utils'
 import { storeJson } from './file-models/store.json'
 
 export const main = sdk.setupMain(async ({ effects }) => {
-  // Read BCHN credentials from mounted volume
-  let bchnUser = 'bitcoin-cash-node'
-  let bchnPass = ''
-  try {
-    const raw = readFileSync('/mnt/bitcoin-cash-node/store.json', 'utf8')
-    const bchnStore = JSON.parse(raw) as {
-      rpcUser?: string
-      rpcPassword?: string
-    }
-    bchnUser = bchnStore.rpcUser ?? bchnUser
-    bchnPass = bchnStore.rpcPassword ?? bchnPass
-  } catch {
-    console.warn('Could not read BCHN store.json — using defaults')
-  }
-
   // Read DB credentials from own store
   const store = await storeJson.read().once()
   const dbPassword = store?.dbPassword ?? 'explorer'
@@ -28,6 +12,45 @@ export const main = sdk.setupMain(async ({ effects }) => {
     .getContainerIp(effects, { packageId: 'fulcrum-bch' })
     .once()
   const electrumHost = fulcrumIp ?? ''
+
+  // Create the API subcontainer first so we can exec into it to read BCHN credentials
+  // (the dependency volume is only accessible inside the subcontainer, not in the Node.js process)
+  const apiSub = await sdk.SubContainer.of(
+    effects,
+    { imageId: 'backend' },
+    sdk.Mounts.of()
+      .mountVolume({
+        volumeId: 'main',
+        subpath: '/cache',
+        mountpoint: '/backend/cache',
+        readonly: false,
+      })
+      .mountDependency({
+        dependencyId: 'bitcoin-cash-node',
+        volumeId: 'main',
+        subpath: null,
+        mountpoint: '/mnt/bitcoin-cash-node',
+        readonly: true,
+      }),
+    'api-sub',
+  )
+
+  // Read BCHN RPC credentials from the mounted dependency volume inside the subcontainer
+  let bchnUser = 'bitcoin-cash-node'
+  let bchnPass = ''
+  try {
+    const result = await apiSub.exec(['cat', '/mnt/bitcoin-cash-node/store.json'])
+    if (result.exitCode === 0) {
+      const bchnStore = JSON.parse(result.stdout.toString()) as {
+        rpcUser?: string
+        rpcPassword?: string
+      }
+      bchnUser = bchnStore.rpcUser ?? bchnUser
+      bchnPass = bchnStore.rpcPassword ?? bchnPass
+    }
+  } catch {
+    console.warn('Could not read BCHN store.json — using defaults')
+  }
 
   return sdk.Daemons.of(effects)
     .addDaemon('db', {
@@ -63,25 +86,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
       requires: [],
     })
     .addDaemon('api', {
-      subcontainer: await sdk.SubContainer.of(
-        effects,
-        { imageId: 'backend' },
-        sdk.Mounts.of()
-          .mountVolume({
-            volumeId: 'main',
-            subpath: '/cache',
-            mountpoint: '/backend/cache',
-            readonly: false,
-          })
-          .mountDependency({
-            dependencyId: 'bitcoin-cash-node',
-            volumeId: 'main',
-            subpath: null,
-            mountpoint: '/mnt/bitcoin-cash-node',
-            readonly: true,
-          }),
-        'api-sub',
-      ),
+      subcontainer: apiSub,
       exec: {
         command: ['./start.sh'],
         env: {

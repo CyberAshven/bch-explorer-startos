@@ -48,13 +48,19 @@ export const manifest = setupManifest({
       description:
         'Bitcoin Cash Node is required to provide blockchain RPC data to the explorer.',
       optional: false,
-      s9pk: null,
+      metadata: {
+        title: 'Bitcoin Cash Node',
+        icon: 'https://raw.githubusercontent.com/CyberAshven/bitcoin-cash-node-startos/master/icon.png',
+      },
     },
     'fulcrum-bch': {
       description:
         'Fulcrum BCH provides the Electrum index for richer transaction history. Highly recommended.',
       optional: true,
-      s9pk: null,
+      metadata: {
+        title: 'Fulcrum BCH',
+        icon: 'https://raw.githubusercontent.com/CyberAshven/fulcrum-bch-startos/master/icon.png',
+      },
     },
   },
 })

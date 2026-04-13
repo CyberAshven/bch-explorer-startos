@@ -16,7 +16,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 RUN cp explorer-frontend-config.sample.json explorer-frontend-config.json
 RUN pnpm install
-RUN pnpm build
+# Skip sync-assets steps — they require outbound network (download mining pool logos)
+# and are designed to retry at container startup, not during build.
+RUN pnpm run generate-config && ng build --localize
 
 FROM nginx:1.29.4-alpine
 
