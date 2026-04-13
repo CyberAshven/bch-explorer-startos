@@ -41,8 +41,8 @@ jobs:
         id: meta
         run: |
           SHA=$(git -C bch-explorer-src rev-parse --short HEAD 2>/dev/null || echo "3.7")
-          echo "frontend_tag=ghcr.io/${{ github.repository_owner }}/bch-explorer-frontend:$SHA" >> $GITHUB_OUTPUT
-          echo "backend_tag=ghcr.io/${{ github.repository_owner }}/bch-explorer-backend:$SHA" >> $GITHUB_OUTPUT
+          echo "frontend_tag=ghcr.io/${{ github.repository_owner | lower }}/bch-explorer-frontend:$SHA" >> $GITHUB_OUTPUT
+          echo "backend_tag=ghcr.io/${{ github.repository_owner | lower }}/bch-explorer-backend:$SHA" >> $GITHUB_OUTPUT
           echo "sha=$SHA" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
@@ -56,7 +56,7 @@ jobs:
             rustgbt=bch-explorer-src/rust
             backend=bch-explorer-src/backend
           push: true
-          tags: ${{ steps.meta.outputs.backend_tag }},ghcr.io/${{ github.repository_owner }}/bch-explorer-backend:latest
+          tags: ${{ steps.meta.outputs.backend_tag }},ghcr.io/${{ github.repository_owner | lower }}/bch-explorer-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -68,7 +68,7 @@ jobs:
             rustgbt=bch-explorer-src/rust
             backend=bch-explorer-src/backend
           push: true
-          tags: ${{ steps.meta.outputs.frontend_tag }},ghcr.io/${{ github.repository_owner }}/bch-explorer-frontend:latest
+          tags: ${{ steps.meta.outputs.frontend_tag }},ghcr.io/${{ github.repository_owner | lower }}/bch-explorer-frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
