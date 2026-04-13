@@ -3,15 +3,19 @@ import { webPort, dbPort } from './utils'
 import { storeJson } from './file-models/store.json'
 
 export const main = sdk.setupMain(async ({ effects }) => {
-  // Read DB credentials from own store
+  // Read store for DB credentials and indexer selection
   const store = await storeJson.read().once()
   const dbPassword = store?.dbPassword ?? 'explorer'
+  const indexer = store?.indexer ?? 'fulcrum'
 
-  // Check if Fulcrum BCH is installed and running
-  const fulcrumIp = await sdk
-    .getContainerIp(effects, { packageId: 'fulcrum-bch' })
-    .once()
-  const electrumHost = fulcrumIp ?? ''
+  // Only try to reach Fulcrum if selected (default on fresh install)
+  let electrumHost = ''
+  if (indexer === 'fulcrum') {
+    const fulcrumIp = await sdk
+      .getContainerIp(effects, { packageId: 'fulcrum-bch' })
+      .once()
+    electrumHost = fulcrumIp ?? ''
+  }
 
   // Create the API subcontainer first so we can exec into it to read BCHN credentials
   // (the dependency volume is only accessible inside the subcontainer, not in the Node.js process)
@@ -97,7 +101,9 @@ export const main = sdk.setupMain(async ({ effects }) => {
           CORE_RPC_PORT: '8332',
           CORE_RPC_USERNAME: bchnUser,
           CORE_RPC_PASSWORD: bchnPass,
-          ...(electrumHost ? { ELECTRUM_HOST: electrumHost } : {}),
+          ...(electrumHost
+            ? { ELECTRUM_HOST: electrumHost, ELECTRUM_PORT: '50001' }
+            : {}),
           DATABASE_ENABLED: 'true',
           DATABASE_HOST: '127.0.0.1',
           DATABASE_PORT: String(dbPort),
@@ -125,10 +131,43 @@ export const main = sdk.setupMain(async ({ effects }) => {
         'web-sub',
       ),
       exec: {
+        // v3.7.10 fixes all entrypoint issues (port typo, dirname, config.template.js)
         command: sdk.useEntrypoint(),
         env: {
-          FRONTEND_HTTP_PORT: String(webPort),
+          // Entrypoint maps these to nginx config sed replacements
           BACKEND_MAINNET_HTTP_HOST: '127.0.0.1',
+          BACKEND_MAINNET_HTTP_PORT: '8999',
+          FRONTEND_HTTP_PORT: String(webPort),
+          // Entrypoint maps these to __VAR__ exports for envsubst on config.js
+          MAINNET_ENABLED: 'true',
+          TESTNET_ENABLED: 'false',
+          TESTNET4_ENABLED: 'false',
+          SIGNET_ENABLED: 'false',
+          ITEMS_PER_PAGE: '10',
+          KEEP_BLOCKS_AMOUNT: '8',
+          NGINX_PROTOCOL: 'http',
+          NGINX_HOSTNAME: 'localhost',
+          NGINX_PORT: '8999',
+          MIN_BLOCK_SIZE_UNITS: '32000000',
+          MEMPOOL_BLOCKS_AMOUNT: '1',
+          BASE_MODULE: 'explorer',
+          ROOT_NETWORK: '',
+          WEBSITE_URL: 'https://bchexplorer.cash',
+          MINING_DASHBOARD: 'true',
+          AUDIT: 'false',
+          MAINNET_BLOCK_AUDIT_START_HEIGHT: '0',
+          TESTNET_BLOCK_AUDIT_START_HEIGHT: '0',
+          SIGNET_BLOCK_AUDIT_START_HEIGHT: '0',
+          TESTNET4_BLOCK_AUDIT_START_HEIGHT: '0',
+          MAINNET_TX_FIRST_SEEN_START_HEIGHT: '0',
+          TESTNET_TX_FIRST_SEEN_START_HEIGHT: '0',
+          TESTNET4_TX_FIRST_SEEN_START_HEIGHT: '0',
+          SIGNET_TX_FIRST_SEEN_START_HEIGHT: '0',
+          REGTEST_TX_FIRST_SEEN_START_HEIGHT: '0',
+          SERVICES_API: 'https://bchexplorer.cash/api/v1/services',
+          HISTORICAL_PRICE: 'true',
+          ADDITIONAL_CURRENCIES: 'false',
+          STRATUM_ENABLED: 'false',
         },
       },
       ready: {

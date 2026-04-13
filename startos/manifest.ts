@@ -21,14 +21,14 @@ export const manifest = setupManifest({
     frontend: {
       source: {
         dockerTag:
-          'ghcr.io/cyberashven/bch-explorer-frontend:3.7.8',
+          'ghcr.io/cyberashven/bch-explorer-frontend:3.7.10',
       },
       arch: ['x86_64'],
     },
     backend: {
       source: {
         dockerTag:
-          'ghcr.io/cyberashven/bch-explorer-backend:3.7.8',
+          'ghcr.io/cyberashven/bch-explorer-backend:3.7.10',
       },
       arch: ['x86_64'],
     },
