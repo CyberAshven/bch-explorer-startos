@@ -21,14 +21,14 @@ export const manifest = setupManifest({
     frontend: {
       source: {
         dockerTag:
-          'registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:3.7.8',
+          'ghcr.io/cyberashven/bch-explorer-frontend:3.7.8',
       },
       arch: ['x86_64'],
     },
     backend: {
       source: {
         dockerTag:
-          'registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:3.7.8',
+          'ghcr.io/cyberashven/bch-explorer-backend:3.7.8',
       },
       arch: ['x86_64'],
     },
