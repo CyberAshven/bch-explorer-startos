@@ -2,7 +2,6 @@ import { readFileSync } from 'fs'
 import { sdk } from './sdk'
 import { webPort, dbPort } from './utils'
 import { storeJson } from './file-models/store.json'
-import { manifest as bchnManifest } from 'bitcoin-cash-node-startos/startos/manifest'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   // Read BCHN credentials from mounted volume
@@ -55,17 +54,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
       },
       ready: {
         display: 'Database',
-        fn: async () => {
-          const result = await sdk.healthCheck.checkPortListening(
-            effects,
-            dbPort,
-            {
-              successMessage: 'Database is ready',
-              errorMessage: 'Database is starting...',
-            },
-          )
-          return result
-        },
+        fn: async () =>
+          sdk.healthCheck.checkPortListening(effects, dbPort, {
+            successMessage: 'Database is ready',
+            errorMessage: 'Database is starting...',
+          }),
       },
       requires: [],
     })
@@ -80,7 +73,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
             mountpoint: '/backend/cache',
             readonly: false,
           })
-          .mountDependency<typeof bchnManifest>({
+          .mountDependency({
             dependencyId: 'bitcoin-cash-node',
             volumeId: 'main',
             subpath: null,
@@ -111,17 +104,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
       },
       ready: {
         display: 'API',
-        fn: async () => {
-          const result = await sdk.healthCheck.checkPortListening(
-            effects,
-            8999,
-            {
-              successMessage: 'BCH Explorer API is ready',
-              errorMessage: 'BCH Explorer API is starting...',
-            },
-          )
-          return result
-        },
+        fn: async () =>
+          sdk.healthCheck.checkPortListening(effects, 8999, {
+            successMessage: 'BCH Explorer API is ready',
+            errorMessage: 'BCH Explorer API is starting...',
+          }),
       },
       requires: ['db'],
     })
@@ -141,17 +128,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
       },
       ready: {
         display: 'Web UI',
-        fn: async () => {
-          const result = await sdk.healthCheck.checkPortListening(
-            effects,
-            webPort,
-            {
-              successMessage: 'BCH Explorer is ready',
-              errorMessage: 'BCH Explorer web UI is starting...',
-            },
-          )
-          return result
-        },
+        fn: async () =>
+          sdk.healthCheck.checkPortListening(effects, webPort, {
+            successMessage: 'BCH Explorer is ready',
+            errorMessage: 'BCH Explorer web UI is starting...',
+          }),
       },
       requires: ['api'],
     })

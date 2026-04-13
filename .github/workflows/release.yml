@@ -1,0 +1,65 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install start-cli
+        run: |
+          curl -L https://github.com/Start9Labs/start-os/releases/latest/download/start-cli-x86_64-unknown-linux-musl.tar.gz \
+            | tar -xz -C /usr/local/bin start-cli
+          chmod +x /usr/local/bin/start-cli
+
+      - name: Setup developer key
+        run: |
+          mkdir -p ~/.startos
+          echo "${{ secrets.DEV_KEY }}" > ~/.startos/developer.key.pem
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build s9pk
+        run: make
+
+      - name: Get package info
+        id: pkg
+        run: |
+          S9PK=$(ls -t *.s9pk | head -1)
+          echo "s9pk=$S9PK" >> $GITHUB_OUTPUT
+          VERSION=$(start-cli s9pk inspect "$S9PK" manifest | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          SHA256=$(sha256sum "$S9PK" | awk '{print $1}')
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: BCH Explorer ${{ steps.pkg.outputs.version }}
+          body: |
+            ## BCH Explorer ${{ steps.pkg.outputs.version }}
+
+            Self-hosted Bitcoin Cash block explorer for StartOS, powered by Melroy's bitcoin-cash-explorer.
+
+            **File:** `${{ steps.pkg.outputs.s9pk }}`
+            **SHA256:** `${{ steps.pkg.outputs.sha256 }}`
+
+            ### Install
+            Download the `.s9pk` file and sideload it on your StartOS node, or use `make install` with `~/.startos/config.yaml` configured.
+          files: "*.s9pk"
