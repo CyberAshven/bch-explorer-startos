@@ -33,16 +33,9 @@ jobs:
       - name: Checkout BCH Explorer source
         uses: actions/checkout@v4
         with:
-          repository: bitcoincashorg/bitcoin-cash-explorer
+          repository: BitcoinCash1/bitcoin-cash-explorer
           ref: main
           path: bch-explorer-src
-        continue-on-error: true
-
-      - name: Checkout BCH Explorer source (GitLab fallback)
-        run: |
-          if [ ! -d bch-explorer-src/backend ]; then
-            git clone --depth=1 https://gitlab.melroy.org/bitcoincash/bitcoin-cash-explorer.git bch-explorer-src
-          fi
 
       - name: Set image tags
         id: meta

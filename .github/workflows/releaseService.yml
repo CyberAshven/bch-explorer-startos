@@ -34,8 +34,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout BCH Explorer source
-        run: |
-          git clone --depth=1 https://gitlab.melroy.org/bitcoincash/bitcoin-cash-explorer.git bch-explorer-src
+        uses: actions/checkout@v4
+        with:
+          repository: BitcoinCash1/bitcoin-cash-explorer
+          ref: main
+          path: bch-explorer-src
 
       - name: Set image tags
         id: meta
