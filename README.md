@@ -35,13 +35,14 @@
 
 | Property      | Value                                                          |
 | ------------- | -------------------------------------------------------------- |
-| Frontend      | `ghcr.io/cyberashven/bch-explorer-frontend` (mirrored from upstream) |
-| Backend       | `ghcr.io/cyberashven/bch-explorer-backend` (mirrored from upstream)  |
+| Frontend      | `ghcr.io/bitcoincash1/bch-explorer-frontend` (upstream mirror) |
+| Backend       | `ghcr.io/bitcoincash1/bch-explorer-backend` (upstream mirror)  |
 | MariaDB       | `mariadb:11.3`                          |
 | Architectures | x86_64                                                         |
 | Runtime       | Three containers (Frontend + Backend + MariaDB)                |
 
-The frontend and backend images are mirrored from `registry.melroy.org` to GHCR for reliable CI builds. They are unmodified upstream images.
+The frontend and backend images are mirrored from Melroy's upstream registry to GHCR. They are unmodified upstream images.
+The images are self-contained within the `.s9pk` package — no remote fetch occurs at install time.
 
 ## Volume and Data Layout
 
@@ -143,6 +144,7 @@ Bitcoin Cash Node must be running with version ≥ 29.0.0 and passing its primar
 Contributions are welcome. Please open an issue or pull request on the [GitHub repository](https://github.com/BitcoinCash1/bch-explorer-startos).
 
 For build instructions, see the [Makefile](Makefile) and [s9pk.mk](s9pk.mk).
+
 ---
 
 ## Quick Reference for AI Consumers
@@ -151,8 +153,8 @@ For build instructions, see the [Makefile](Makefile) and [s9pk.mk](s9pk.mk).
 package_id: bch-explorer
 upstream_version: 3.7.10
 images:
-  frontend: ghcr.io/cyberashven/bch-explorer-frontend:3.7.10
-  backend: ghcr.io/cyberashven/bch-explorer-backend:3.7.10
+  frontend: ghcr.io/bitcoincash1/bch-explorer-frontend:3.7.10
+  backend: ghcr.io/bitcoincash1/bch-explorer-backend:3.7.10
   db: mariadb:11.3
 architectures: [x86_64]
 volumes:

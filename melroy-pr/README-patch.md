@@ -8,16 +8,16 @@
 
 BCH Explorer is now available as a one-click install on [StartOS](https://start9.com/).
 
-The wrapper is maintained at [CyberAshven/bch-explorer-startos](https://github.com/CyberAshven/bch-explorer-startos) and packages your v3.7.10 Docker images (frontend + backend) alongside MariaDB into an `.s9pk` for StartOS.
+The wrapper is maintained at [BitcoinCash1/bch-explorer-startos](https://github.com/BitcoinCash1/bch-explorer-startos) and packages your v3.7.10 Docker images (frontend + backend) alongside MariaDB into an `.s9pk` for StartOS.
 
 **What it does:**
-- Bundles `ghcr.io/cyberashven/bch-explorer-frontend:3.7.10` and `ghcr.io/cyberashven/bch-explorer-backend:3.7.10`
+- Bundles `registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:3.7.10` and `registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:3.7.10`
 - Auto-connects to Bitcoin Cash Node (BCHN) for RPC and Fulcrum BCH for Electrum indexing — both also packaged for StartOS
 - Zero manual configuration needed post-install
 
 **Dependencies (also packaged for StartOS):**
-- [bitcoin-cash-node-startos](https://github.com/CyberAshven/bitcoin-cash-node-startos) — BCHN v29.0.0
-- [fulcrum-bch-startos](https://github.com/CyberAshven/fulcrum-bch-startos) — Fulcrum v2.1.0
+- [bitcoin-cash-node-startos](https://github.com/BitcoinCash1/bitcoin-cash-node-startos) — BCHN v29.0.0
+- [fulcrum-bch-startos](https://github.com/BitcoinCash1/fulcrum-bch-startos) — Fulcrum v2.1.0
 
 ---
 
@@ -40,5 +40,5 @@ With:
 ```markdown
 BCH Explorer can be conveniently installed on the following full-node distros:
 
-- [StartOS](https://github.com/CyberAshven/bch-explorer-startos) — self-hosted BCH Explorer on your Start9 server
+- [StartOS](https://github.com/BitcoinCash1/bch-explorer-startos) — self-hosted BCH Explorer on your Start9 server
 ```
