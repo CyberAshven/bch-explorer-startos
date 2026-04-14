@@ -38,7 +38,7 @@
 | Frontend      | `ghcr.io/bitcoincash1/bch-explorer-frontend` (upstream mirror) |
 | Backend       | `ghcr.io/bitcoincash1/bch-explorer-backend` (upstream mirror)  |
 | MariaDB       | `mariadb:11.3`                          |
-| Architectures | x86_64                                                         |
+| Architectures | x86_64, aarch64 (arm64 via emulation)                          |
 | Runtime       | Three containers (Frontend + Backend + MariaDB)                |
 
 The frontend and backend images are mirrored from Melroy's upstream registry to GHCR. They are unmodified upstream images.
@@ -156,7 +156,7 @@ images:
   frontend: ghcr.io/bitcoincash1/bch-explorer-frontend:3.7.10
   backend: ghcr.io/bitcoincash1/bch-explorer-backend:3.7.10
   db: mariadb:11.3
-architectures: [x86_64]
+architectures: [x86_64, aarch64]
 volumes:
   main: /backend/cache (cache data)
   db: /var/lib/mysql (MariaDB)

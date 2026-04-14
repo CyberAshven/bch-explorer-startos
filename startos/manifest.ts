@@ -24,6 +24,7 @@ export const manifest = setupManifest({
           'ghcr.io/bitcoincash1/bch-explorer-frontend:3.7.10',
       },
       arch: ['x86_64'],
+      emulateMissingAs: 'x86_64',
     },
     backend: {
       source: {
@@ -31,10 +32,11 @@ export const manifest = setupManifest({
           'ghcr.io/bitcoincash1/bch-explorer-backend:3.7.10',
       },
       arch: ['x86_64'],
+      emulateMissingAs: 'x86_64',
     },
     db: {
       source: { dockerTag: 'mariadb:11.3' },
-      arch: ['x86_64'],
+      arch: ['x86_64', 'aarch64'],
     },
   },
   alerts: {
