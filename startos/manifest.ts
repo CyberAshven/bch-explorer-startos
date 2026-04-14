@@ -4,12 +4,12 @@ export const manifest = setupManifest({
   id: 'bch-explorer',
   title: 'BCH Explorer',
   license: 'MIT',
-  packageRepo: 'https://github.com/CyberAshven/bch-explorer-startos',
+  packageRepo: 'https://github.com/BitcoinCash1/bch-explorer-startos',
   upstreamRepo: 'https://gitlab.melroy.org/bitcoincash/bitcoin-cash-explorer',
   marketingUrl: 'https://bchexplorer.cash',
   donationUrl: null,
   docsUrls: [
-    'https://github.com/CyberAshven/bch-explorer-startos/blob/master/docs/instructions.md',
+    'https://github.com/BitcoinCash1/bch-explorer-startos/blob/master/docs/instructions.md',
     'https://gitlab.melroy.org/bitcoincash/bitcoin-cash-explorer',
   ],
   description: {
@@ -54,7 +54,7 @@ export const manifest = setupManifest({
       optional: false,
       metadata: {
         title: 'Bitcoin Cash Node',
-        icon: 'https://raw.githubusercontent.com/CyberAshven/bitcoin-cash-node-startos/master/icon.png',
+        icon: 'https://raw.githubusercontent.com/BitcoinCash1/bitcoin-cash-node-startos/master/icon.png',
       },
     },
     'fulcrum-bch': {
@@ -63,7 +63,7 @@ export const manifest = setupManifest({
       optional: false,
       metadata: {
         title: 'Fulcrum BCH',
-        icon: 'https://raw.githubusercontent.com/CyberAshven/fulcrum-bch-startos/master/icon.png',
+        icon: 'https://raw.githubusercontent.com/BitcoinCash1/fulcrum-bch-startos/master/icon.png',
       },
     },
   },
