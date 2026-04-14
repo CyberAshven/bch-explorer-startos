@@ -1,4 +1,5 @@
 import { setupManifest } from '@start9labs/start-sdk'
+import { long, short } from './i18n'
 
 export const manifest = setupManifest({
   id: 'bch-explorer',
@@ -12,24 +13,19 @@ export const manifest = setupManifest({
     'https://github.com/BitcoinCash1/bch-explorer-startos/blob/master/docs/instructions.md',
     'https://gitlab.melroy.org/bitcoincash/bitcoin-cash-explorer',
   ],
-  description: {
-    short: 'Bitcoin Cash block explorer',
-    long: 'BCH Explorer is a self-hosted Bitcoin Cash block explorer powered by Melroy\'s bitcoin-cash-explorer. Browse BCH transactions, addresses, and blocks directly from your StartOS node. Optionally connects to Fulcrum BCH for richer transaction history.',
-  },
+  description: { short, long },
   volumes: ['main', 'db'],
   images: {
     frontend: {
       source: {
-        dockerTag:
-          'ghcr.io/bitcoincash1/bch-explorer-frontend:3.7.10',
+        dockerTag: 'ghcr.io/bitcoincash1/bch-explorer-frontend:3.7.10',
       },
       arch: ['x86_64'],
       emulateMissingAs: 'x86_64',
     },
     backend: {
       source: {
-        dockerTag:
-          'ghcr.io/bitcoincash1/bch-explorer-backend:3.7.10',
+        dockerTag: 'ghcr.io/bitcoincash1/bch-explorer-backend:3.7.10',
       },
       arch: ['x86_64'],
       emulateMissingAs: 'x86_64',
