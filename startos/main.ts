@@ -1,8 +1,11 @@
 import { sdk } from './sdk'
 import { webPort, dbPort } from './utils'
 import { storeJson } from './file-models/store.json'
+import { manifest as bchnManifest } from 'bitcoin-cash-node-startos/startos/manifest'
 
 export const main = sdk.setupMain(async ({ effects }) => {
+  console.log('Starting BCH Explorer!')
+
   // Read store for DB credentials
   const store = await storeJson.read().once()
   const dbPassword = store?.dbPassword ?? 'explorer'
@@ -25,7 +28,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         mountpoint: '/backend/cache',
         readonly: false,
       })
-      .mountDependency({
+      .mountDependency<typeof bchnManifest>({
         dependencyId: 'bitcoin-cash-node',
         volumeId: 'main',
         subpath: null,

@@ -38,7 +38,8 @@ export const manifest = setupManifest({
     },
   },
   alerts: {
-    install: null,
+    install:
+      'BCH Explorer requires both Bitcoin Cash Node and Fulcrum BCH to be installed and synced. The database will be populated automatically on first start.',
     update: null,
     uninstall:
       'Uninstalling BCH Explorer will permanently delete all cached explorer data and the database.',

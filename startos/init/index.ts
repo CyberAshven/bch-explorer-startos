@@ -8,9 +8,9 @@ import { seedFiles } from './seedFiles'
 import { taskSelectIndexer } from './taskSelectIndexer'
 
 export const init = sdk.setupInit(
-  seedFiles,
   restoreInit,
   versionGraph,
+  seedFiles,
   setInterfaces,
   setDependencies,
   actions,
