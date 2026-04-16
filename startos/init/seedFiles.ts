@@ -20,6 +20,7 @@ export const seedFiles = sdk.setupOnInit(async (effects, kind) => {
     dbPassword,
     initialized: true,
     nodePackageId: 'bitcoincashd',
+    nodeConfirmed: false,
     indexer: null,
   })
 })
