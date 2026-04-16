@@ -38,6 +38,26 @@ jobs:
           fi
         shell: bash
 
+      - name: Pre-pull external Docker images (with retries)
+        run: |
+          pull_with_retry() {
+            local image="$1"
+            for i in 1 2 3 4 5; do
+              echo "Attempt $i: pulling $image"
+              if docker pull "$image"; then
+                echo "Successfully pulled $image"
+                return 0
+              fi
+              echo "Pull failed, waiting 30s before retry..."
+              sleep 30
+            done
+            echo "Failed to pull $image after 5 attempts"
+            return 1
+          }
+          pull_with_retry "registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:3.8.3"
+          pull_with_retry "registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:3.8.3"
+        shell: bash
+
       - name: Build service packages
         run: |
           RUST_LOG=debug RUST_BACKTRACE=1 make
