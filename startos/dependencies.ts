@@ -12,7 +12,7 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
       input: {
         kind: 'partial',
         value: {
-          prune: null,
+          prune: 0,
           txindex: true,
           zmqEnabled: false,
         },
@@ -26,7 +26,7 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
       input: {
         kind: 'partial',
         value: {
-          prune: null,
+          prune: 0,
           txindex: true,
           zmqEnabled: true,
         },
