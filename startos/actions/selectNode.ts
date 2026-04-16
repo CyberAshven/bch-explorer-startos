@@ -4,19 +4,14 @@ import { storeJson } from '../file-models/store.json'
 const { InputSpec, Value } = sdk
 
 const nodeInputSpec = InputSpec.of({
-  nodePackageId: Value.text({
-    name: 'Node Package ID',
-    description:
-      'StartOS package ID for the BCH node backend (for example: bitcoincashd).',
-    required: true,
+  nodePackageId: Value.select({
+    name: 'Node Backend',
+    description: 'Select which BCH full node the explorer should connect to.',
     default: 'bitcoincashd',
-    patterns: [
-      {
-        regex: '^[a-z0-9][a-z0-9-]*$',
-        description:
-          'Must start with a lowercase letter/number and contain only lowercase letters, numbers, or hyphens.',
-      },
-    ],
+    values: {
+      bitcoincashd: 'Bitcoin Cash Node (BCHN)',
+      bchd: 'Bitcoin Cash Daemon (BCHD)',
+    },
   }),
 })
 
@@ -38,8 +33,9 @@ export const selectNode = sdk.Action.withInput(
 
   async ({ effects }) => {
     const store = await storeJson.read().once()
+    const nodePackageId = store?.nodePackageId ?? 'bitcoincashd'
     return {
-      nodePackageId: store?.nodePackageId ?? 'bitcoincashd',
+      nodePackageId: nodePackageId as 'bitcoincashd' | 'bchd',
     }
   },
 
