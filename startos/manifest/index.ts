@@ -51,11 +51,20 @@ export const manifest = setupManifest({
   dependencies: {
     bitcoincashd: {
       description:
-        'Bitcoin Cash Node is required to provide blockchain RPC data to the explorer.',
-      optional: false,
+        'Bitcoin Cash Node — C++ full node. Provides blockchain RPC data to the explorer.',
+      optional: true,
       metadata: {
         title: 'Bitcoin Cash Node',
         icon: 'https://raw.githubusercontent.com/BitcoinCash1/bitcoin-cash-node-startos/master/icon.png',
+      },
+    },
+    bchd: {
+      description:
+        'BCHD — Go-based full node. An alternative to Bitcoin Cash Node for providing RPC data.',
+      optional: true,
+      metadata: {
+        title: 'Bitcoin Cash Daemon',
+        icon: 'https://raw.githubusercontent.com/BitcoinCash1/bitcoin-cash-daemon-startos/master/icon.png',
       },
     },
     'fulcrum-bch': {

@@ -1,4 +1,5 @@
-import { autoconfig } from 'bitcoin-cash-node-startos/startos/actions/config/autoconfig'
+import { autoconfig as bchnAutoconfig } from 'bitcoin-cash-node-startos/startos/actions/config/autoconfig'
+import { autoconfig as bchdAutoconfig } from 'bitcoin-cash-daemon-startos/startos/actions/config/autoconfig'
 import { sdk } from './sdk'
 import { storeJson } from './file-models/store.json'
 
@@ -6,37 +7,56 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
   const store = await storeJson.read().const(effects)
   const nodePackageId = store?.nodePackageId ?? 'bitcoincashd'
 
-  await sdk.action.createTask(effects, nodePackageId, autoconfig, 'critical', {
-    input: {
-      kind: 'partial',
-      value: {
-        prune: null,
-        txindex: true,
-        zmqEnabled: true,
+  if (nodePackageId === 'bchd') {
+    await sdk.action.createTask(effects, 'bchd', bchdAutoconfig, 'critical', {
+      input: {
+        kind: 'partial',
+        value: {
+          prune: null,
+          txindex: true,
+          zmqEnabled: false,
+        },
       },
-    },
-    reason:
-      'Pruning must be disabled, txindex and ZMQ must be enabled for BCH Explorer to function properly.',
-    when: { condition: 'input-not-matches', once: false },
-  })
-
-  const nodeRequirement = {
-    kind: 'running' as const,
-    versionRange: '>=29.0.0:0',
-    healthChecks: ['primary'],
+      reason:
+        'Pruning must be disabled and txindex must be enabled for BCH Explorer to function properly.',
+      when: { condition: 'input-not-matches', once: false },
+    })
+  } else {
+    await sdk.action.createTask(effects, nodePackageId, bchnAutoconfig, 'critical', {
+      input: {
+        kind: 'partial',
+        value: {
+          prune: null,
+          txindex: true,
+          zmqEnabled: true,
+        },
+      },
+      reason:
+        'Pruning must be disabled, txindex and ZMQ must be enabled for BCH Explorer to function properly.',
+      when: { condition: 'input-not-matches', once: false },
+    })
   }
 
-  const deps: Record<string, typeof nodeRequirement> = {
-    bitcoincashd: nodeRequirement,
+  const deps: Record<string, { kind: 'running'; versionRange: string; healthChecks: string[] }> = {
     'fulcrum-bch': {
-      kind: 'running' as const,
+      kind: 'running',
       versionRange: '>=2.1.0:0',
       healthChecks: ['primary'],
     },
   }
 
-  if (nodePackageId !== 'bitcoincashd') {
-    deps[nodePackageId] = nodeRequirement
+  if (nodePackageId === 'bchd') {
+    deps['bchd'] = {
+      kind: 'running',
+      versionRange: '>=0.21.1:0',
+      healthChecks: ['primary'],
+    }
+  } else {
+    deps[nodePackageId] = {
+      kind: 'running',
+      versionRange: '>=29.0.0:0',
+      healthChecks: ['primary'],
+    }
   }
 
   return deps as any
