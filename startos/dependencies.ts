@@ -8,18 +8,18 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
   const nodePackageId = store?.nodePackageId ?? 'bitcoincashd'
 
   if (nodePackageId === 'bchd') {
-    // BCHD: ensure pruning is off and gRPC is on (provides Neutrino/BIP157/158)
-    // txindex and BIP37 bloom filters are always enabled in BCHD
+    // BCHD: ensure pruning off, txindex on, gRPC on
     await sdk.action.createTask(effects, 'bchd', bchdAutoconfig, 'critical', {
       input: {
         kind: 'partial',
         value: {
           prune: 0,
+          txindex: true,
           grpcEnabled: true,
         },
       },
       reason:
-        'Pruning must be disabled and gRPC must be enabled for BCH Explorer to function properly.',
+        'Pruning must be disabled, txindex must be enabled, and gRPC must be enabled for BCH Explorer to function properly.',
       when: { condition: 'input-not-matches', once: false },
     })
   } else {
