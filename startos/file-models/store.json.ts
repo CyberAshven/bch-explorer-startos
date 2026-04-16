@@ -6,6 +6,7 @@ export const shape = z
     dbPassword: z.string().catch(''),
     initialized: z.boolean().catch(false),
     nodePackageId: z.string().catch('bitcoincashd'),
+    nodeConfirmed: z.boolean().catch(true),
     indexer: z.enum(['fulcrum']).nullable().catch(null),
   })
   .strip()

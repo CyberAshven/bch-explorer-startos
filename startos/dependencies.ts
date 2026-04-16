@@ -7,36 +7,38 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
   const store = await storeJson.read().const(effects)
   const nodePackageId = store?.nodePackageId ?? 'bitcoincashd'
 
-  if (nodePackageId === 'bchd') {
-    // BCHD: ensure pruning off, txindex on, gRPC on
-    await sdk.action.createTask(effects, 'bchd', bchdAutoconfig, 'critical', {
-      input: {
-        kind: 'partial',
-        value: {
-          prune: 0,
-          txindex: true,
-          grpcEnabled: true,
+  if (store?.nodeConfirmed) {
+    if (nodePackageId === 'bchd') {
+      // BCHD: ensure pruning off, txindex on, gRPC on
+      await sdk.action.createTask(effects, 'bchd', bchdAutoconfig, 'critical', {
+        input: {
+          kind: 'partial',
+          value: {
+            prune: 0,
+            txindex: true,
+            grpcEnabled: true,
+          },
         },
-      },
-      reason:
-        'Pruning must be disabled, txindex must be enabled, and gRPC must be enabled for BCH Explorer to function properly.',
-      when: { condition: 'input-not-matches', once: false },
-    })
-  } else {
-    // BCHN: ensure pruning off, txindex on, ZMQ on
-    await sdk.action.createTask(effects, nodePackageId, bchnAutoconfig, 'critical', {
-      input: {
-        kind: 'partial',
-        value: {
-          prune: 0,
-          txindex: true,
-          zmqEnabled: true,
+        reason:
+          'Pruning must be disabled, txindex must be enabled, and gRPC must be enabled for BCH Explorer to function properly.',
+        when: { condition: 'input-not-matches', once: false },
+      })
+    } else {
+      // BCHN: ensure pruning off, txindex on, ZMQ on
+      await sdk.action.createTask(effects, nodePackageId, bchnAutoconfig, 'critical', {
+        input: {
+          kind: 'partial',
+          value: {
+            prune: 0,
+            txindex: true,
+            zmqEnabled: true,
+          },
         },
-      },
-      reason:
-        'Pruning must be disabled, transaction index and ZMQ must be enabled for BCH Explorer to function properly.',
-      when: { condition: 'input-not-matches', once: false },
-    })
+        reason:
+          'Pruning must be disabled, transaction index and ZMQ must be enabled for BCH Explorer to function properly.',
+        when: { condition: 'input-not-matches', once: false },
+      })
+    }
   }
 
   const deps: Record<string, { kind: 'running'; versionRange: string; healthChecks: string[] }> = {
