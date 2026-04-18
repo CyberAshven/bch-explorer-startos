@@ -40,10 +40,10 @@ jobs:
 
       - name: Pre-pull Docker images from GHCR mirror (melroy registry unreachable from GH Actions)
         run: |
-          docker pull ghcr.io/bitcoincash1/bch-explorer-frontend:3.8.3
-          docker pull ghcr.io/bitcoincash1/bch-explorer-backend:3.8.3
-          docker tag ghcr.io/bitcoincash1/bch-explorer-frontend:3.8.3 registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:3.8.3
-          docker tag ghcr.io/bitcoincash1/bch-explorer-backend:3.8.3 registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:3.8.3
+          docker pull ghcr.io/bitcoincash1/bch-explorer-frontend:3.8.8
+          docker pull ghcr.io/bitcoincash1/bch-explorer-backend:3.8.8
+          docker tag ghcr.io/bitcoincash1/bch-explorer-frontend:3.8.8 registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:3.8.8
+          docker tag ghcr.io/bitcoincash1/bch-explorer-backend:3.8.8 registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:3.8.8
         shell: bash
 
       - name: Build service packages
@@ -85,8 +85,6 @@ jobs:
           git config user.name "GitHub Action"
           git tag -f "${{ steps.meta.outputs.vtag }}"
           git push origin -f "${{ steps.meta.outputs.vtag }}"
-          git tag -f latest
-          git push origin -f latest
 
       - name: Publish versioned release
         uses: softprops/action-gh-release@v2
@@ -97,11 +95,3 @@ jobs:
           body_path: change-log.txt
           files: ./*.s9pk
 
-      - name: Publish latest release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: ${{ steps.meta.outputs.title }} - Latest Stable
-          prerelease: false
-          body_path: change-log.txt
-          files: ./*.s9pk
