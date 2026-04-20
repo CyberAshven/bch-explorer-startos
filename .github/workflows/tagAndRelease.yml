@@ -38,12 +38,23 @@ jobs:
           fi
         shell: bash
 
-      - name: Pre-pull Docker images from GHCR mirror (melroy registry unreachable from GH Actions)
+      - name: Pre-pull explorer images from Melroy registry
         run: |
-          docker pull ghcr.io/bitcoincash1/bch-explorer-frontend:3.8.8
-          docker pull ghcr.io/bitcoincash1/bch-explorer-backend:3.8.8
-          docker tag ghcr.io/bitcoincash1/bch-explorer-frontend:3.8.8 registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:3.8.8
-          docker tag ghcr.io/bitcoincash1/bch-explorer-backend:3.8.8 registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:3.8.8
+          pull_with_retry() {
+            image="$1"
+            for attempt in 1 2 3 4 5; do
+              if docker pull "$image"; then
+                return 0
+              fi
+              echo "Pull failed for $image (attempt $attempt/5). Retrying in 15s..."
+              sleep 15
+            done
+            echo "Failed to pull $image after 5 attempts"
+            return 1
+          }
+
+          pull_with_retry registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:3.8.12
+          pull_with_retry registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:3.8.12
         shell: bash
 
       - name: Build service packages
