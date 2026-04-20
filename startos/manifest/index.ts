@@ -18,14 +18,14 @@ export const manifest = setupManifest({
   images: {
     frontend: {
       source: {
-        dockerTag: 'ghcr.io/bitcoincash1/bch-explorer-frontend:3.8.12',
+        dockerTag: 'ghcr.io/bitcoincash1/bch-explorer-frontend:3.8.3',
       },
       arch: ['x86_64'],
       emulateMissingAs: 'x86_64',
     },
     backend: {
       source: {
-        dockerTag: 'ghcr.io/bitcoincash1/bch-explorer-backend:3.8.12',
+        dockerTag: 'ghcr.io/bitcoincash1/bch-explorer-backend:3.8.3',
       },
       arch: ['x86_64'],
       emulateMissingAs: 'x86_64',
