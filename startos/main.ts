@@ -10,6 +10,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
   const dbPassword = store?.dbPassword ?? 'explorer'
   const nodePackageId = store?.nodePackageId ?? 'bitcoincashd'
   const nodeHost = `${nodePackageId}.startos`
+  // BCHD serves RPC over native TLS; the plaintext stunnel proxy on port 8334
+  // forwards to its TLS RPC on 8332 internally. Melroy's backend has no TLS
+  // support for CORE_RPC, so we route through the proxy when bchd is selected.
+  const nodeRpcPort = nodePackageId === 'bchd' ? '8334' : '8332'
 
   // Always connect to Fulcrum BCH for Electrum indexing
   const electrumHost = 'fulcrum-bch.startos'
@@ -95,7 +99,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
           EXPLORER_NETWORK: 'mainnet',
           EXPLORER_INDEXING_BLOCKS_AMOUNT: '-1',
           CORE_RPC_HOST: nodeHost,
-          CORE_RPC_PORT: '8332',
+          CORE_RPC_PORT: nodeRpcPort,
           CORE_RPC_USERNAME: nodeUser,
           CORE_RPC_PASSWORD: nodePass,
           ELECTRUM_HOST: electrumHost,
@@ -127,7 +131,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         'web-sub',
       ),
       exec: {
-        // v3.8.13 upstream images from registry.melroy.org
+        // v3.8.16 upstream images from registry.melroy.org
         command: sdk.useEntrypoint(),
         env: {
           // Entrypoint maps these to nginx config sed replacements
