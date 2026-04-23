@@ -38,12 +38,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          UPSTREAM_TAG=3.8.16
           UPSTREAM_DIR=/tmp/bitcoin-cash-explorer-upstream
           rm -rf "$UPSTREAM_DIR"
-          git clone --depth 1 --branch 3.8.13 https://github.com/BitcoinCash1/bitcoin-cash-explorer.git "$UPSTREAM_DIR"
+          git clone --depth 1 --branch "$UPSTREAM_TAG" https://github.com/BitcoinCash1/bitcoin-cash-explorer.git "$UPSTREAM_DIR"
 
           # Prepare upstream frontend/backend directories the same way upstream Docker CI does.
-          (cd "$UPSTREAM_DIR" && ./docker/init.sh 3.8.13)
+          (cd "$UPSTREAM_DIR" && ./docker/init.sh "$UPSTREAM_TAG")
 
           cat > "$UPSTREAM_DIR/docker/frontend/Dockerfile.startos" <<'EOF'
           FROM node:24-bookworm AS builder
@@ -140,7 +141,7 @@ jobs:
 
           docker build \
             --build-arg commitHash="$SHORT_SHA" \
-            -t registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:3.8.13 \
+            -t registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:"$UPSTREAM_TAG" \
             -f "$UPSTREAM_DIR/docker/frontend/Dockerfile.startos" \
             "$UPSTREAM_DIR/frontend"
 
@@ -148,12 +149,17 @@ jobs:
             --build-context backend="$UPSTREAM_DIR/backend" \
             --build-context rustgbt="$UPSTREAM_DIR/rust" \
             --build-arg commitHash="$SHORT_SHA" \
-            -t registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:3.8.13 \
+            -t registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:"$UPSTREAM_TAG" \
             -f "$UPSTREAM_DIR/docker/backend/Dockerfile.startos" \
             "$UPSTREAM_DIR/backend"
 
-          docker image inspect registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:3.8.13 >/dev/null
-          docker image inspect registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:3.8.13 >/dev/null
+          docker image inspect registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:"$UPSTREAM_TAG" >/dev/null
+          docker image inspect registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:"$UPSTREAM_TAG" >/dev/null
+
+          echo "Pushing images to registry.melroy.org..."
+          echo "${{ secrets.REGISTRY_MELROY_USER }}" | docker login registry.melroy.org -u "${{ secrets.REGISTRY_MELROY_USER }}" --password-stdin
+          docker push registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-frontend:"$UPSTREAM_TAG"
+          docker push registry.melroy.org/bitcoincash/bitcoin-cash-explorer/explorer-backend:"$UPSTREAM_TAG"
         shell: bash
 
       - name: Build service packages
