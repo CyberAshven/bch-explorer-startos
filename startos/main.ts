@@ -69,7 +69,7 @@ p('/backend/package/api/blocks.js',
   'const verboseBlock = await bitcoin_client_1.default.getBlock(blockHash, 2); verboseBlock.tx = verboseBlock.tx || verboseBlock.rawtx || [];');
 p('/backend/package/api/bitcoin/bitcoin-api.js',
   /\\.getRawTransaction\\(txId, 2, '', true\\)/,
-  '.getRawTransaction(txId, 2)');`,
+  '.getRawTransaction(txId, true)');`,
   ])
 
   return sdk.Daemons.of(effects)
@@ -146,7 +146,7 @@ p('/backend/package/api/bitcoin/bitcoin-api.js',
         'web-sub',
       ),
       exec: {
-        // v3.8.16 upstream images from registry.melroy.org
+          // v3.10.1 upstream images from registry.melroy.org
         command: sdk.useEntrypoint(),
         env: {
           // Entrypoint maps these to nginx config sed replacements

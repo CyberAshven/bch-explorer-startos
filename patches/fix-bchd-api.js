@@ -21,5 +21,5 @@ patch(
 patch(
   '/backend/package/api/bitcoin/bitcoin-api.js',
   /\.getRawTransaction\(txId, 2, '', true\)/,
-  '.getRawTransaction(txId, 2)',
+  '.getRawTransaction(txId, true)',
 )
