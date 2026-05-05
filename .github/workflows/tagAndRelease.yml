@@ -34,11 +34,23 @@ jobs:
           fi
         shell: bash
 
+      - name: Derive upstream tag from manifest
+        id: upstream
+        run: |
+          set -euo pipefail
+          # Read the StartOS package version (e.g. 3.10.1:0) and strip the build suffix
+          VERSION=$(grep -E "version: '" startos/manifest/index.ts | head -1 | sed -E "s/.*version: '([^']+)'.*/\1/")
+          UPSTREAM_TAG="${VERSION%%:*}"
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "UPSTREAM_TAG=${UPSTREAM_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Detected upstream tag: ${UPSTREAM_TAG}"
+        shell: bash
+
       - name: Build explorer images locally from upstream source
         run: |
           set -euo pipefail
 
-          UPSTREAM_TAG=3.8.16
+          UPSTREAM_TAG="${{ steps.upstream.outputs.UPSTREAM_TAG }}"
           UPSTREAM_DIR=/tmp/bitcoin-cash-explorer-upstream
           rm -rf "$UPSTREAM_DIR"
           git clone --depth 1 --branch "$UPSTREAM_TAG" https://github.com/BitcoinCash1/bitcoin-cash-explorer.git "$UPSTREAM_DIR"
