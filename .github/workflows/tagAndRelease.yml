@@ -34,15 +34,21 @@ jobs:
           fi
         shell: bash
 
-      - name: Derive upstream tag from manifest
+      - name: Derive upstream tag from current version graph
         id: upstream
         run: |
           set -euo pipefail
-          # Read the StartOS package version (e.g. 3.10.1:0) and strip the build suffix
-          VERSION=$(grep -E "version: '" startos/manifest/index.ts | head -1 | sed -E "s/.*version: '([^']+)'.*/\1/")
+          # Resolve the variable name set as `current` in startos/versions/index.ts
+          CURRENT_VAR=$(grep -E '^[[:space:]]*current:' startos/versions/index.ts | head -1 | sed -E 's/.*current:[[:space:]]*([A-Za-z0-9_]+).*/\1/')
+          # Map e.g. v_3_10_1_0 -> v3.10.1.0
+          VERSION_FILE_BASE=$(echo "$CURRENT_VAR" | sed -E 's/^v_//; s/_/./g')
+          VERSION_FILE="startos/versions/v${VERSION_FILE_BASE}.ts"
+          # Extract the literal version string e.g. '3.10.1:0' from that file
+          VERSION=$(grep -E "version:[[:space:]]*'" "$VERSION_FILE" | head -1 | sed -E "s/.*version:[[:space:]]*'([^']+)'.*/\1/")
           UPSTREAM_TAG="${VERSION%%:*}"
           echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "UPSTREAM_TAG=${UPSTREAM_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Detected version: ${VERSION}"
           echo "Detected upstream tag: ${UPSTREAM_TAG}"
         shell: bash
 
