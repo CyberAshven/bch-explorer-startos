@@ -59,6 +59,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
 
   // BCHD compatibility patches:
   // - getblock(verbosity=2) returns `rawtx` not `tx`
+  // - getblock does not include `nTx`; derive tx_count from tx/rawtx array length
   // - getblockstats RPC is not implemented (-32601 Method not found); fall back
   //   to the explorer's existing local stats computation (the stale-block path)
   // - getrawtransaction only accepts (txid, verbose), not the 4-param form
@@ -74,7 +75,10 @@ p('/backend/package/api/blocks.js',
   "if (!block.stale) {\\n            try { return await bitcoin_client_1.default.getBlockStats(block.id); }\\n            catch (e) { const m=((e&&e.message)||'')+''; const c=e&&e.code; if (c!==-32601 && !/method not found/i.test(m)) throw e; console.warn('[bchd-shim] getblockstats unsupported; computing locally for', block.id); }\\n        }");
 p('/backend/package/api/bitcoin/bitcoin-api.js',
   /\\.getRawTransaction\\(txId, 2, '', true\\)/,
-  '.getRawTransaction(txId, true)');`,
+  '.getRawTransaction(txId, true)');
+p('/backend/package/api/bitcoin/bitcoin-api.js',
+  /tx_count: block\\.nTx,/,
+  'tx_count: (block.nTx != null ? block.nTx : ((block.tx && block.tx.length) || (block.rawtx && block.rawtx.length) || 0)),');`,
   ])
 
   return sdk.Daemons.of(effects)
