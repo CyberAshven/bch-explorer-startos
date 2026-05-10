@@ -57,16 +57,21 @@ export const main = sdk.setupMain(async ({ effects }) => {
     console.warn('Could not read node store.json — using defaults')
   }
 
-  // BCHD returns `rawtx` instead of `tx` for verbosity=2 getblock, and its
-  // getrawtransaction only accepts (txid, verbose), not the 4-param form the
-  // explorer backend uses. Patch the built JS in-place (idempotent).
+  // BCHD compatibility patches:
+  // - getblock(verbosity=2) returns `rawtx` not `tx`
+  // - getblockstats RPC is not implemented (-32601 Method not found); fall back
+  //   to the explorer's existing local stats computation (the stale-block path)
+  // - getrawtransaction only accepts (txid, verbose), not the 4-param form
   await apiSub.exec([
     'node', '-e',
     `const fs=require('fs');
-function p(file,re,s){const c=fs.readFileSync(file,'utf8');const n=c.replace(re,s);if(c!==n)fs.writeFileSync(file,n);}
+function p(file,re,s){const c=fs.readFileSync(file,'utf8');const n=c.replace(re,s);if(c!==n){fs.writeFileSync(file,n);console.log('[bchd-shim] patched',file);} else {console.log('[bchd-shim] no-op',file);} }
 p('/backend/package/api/blocks.js',
   /const verboseBlock = await bitcoin_client_1\\.default\\.getBlock\\(blockHash, 2\\);/,
   'const verboseBlock = await bitcoin_client_1.default.getBlock(blockHash, 2); verboseBlock.tx = verboseBlock.tx || verboseBlock.rawtx || [];');
+p('/backend/package/api/blocks.js',
+  /if \\(!block\\.stale\\) \\{\\s*return bitcoin_client_1\\.default\\.getBlockStats\\(block\\.id\\);\\s*\\}/,
+  "if (!block.stale) {\\n            try { return await bitcoin_client_1.default.getBlockStats(block.id); }\\n            catch (e) { const m=((e&&e.message)||'')+''; const c=e&&e.code; if (c!==-32601 && !/method not found/i.test(m)) throw e; console.warn('[bchd-shim] getblockstats unsupported; computing locally for', block.id); }\\n        }");
 p('/backend/package/api/bitcoin/bitcoin-api.js',
   /\\.getRawTransaction\\(txId, 2, '', true\\)/,
   '.getRawTransaction(txId, true)');`,
@@ -146,7 +151,7 @@ p('/backend/package/api/bitcoin/bitcoin-api.js',
         'web-sub',
       ),
       exec: {
-          // v3.10.1 upstream images from registry.melroy.org
+          // v3.10.8 upstream images from registry.melroy.org
         command: sdk.useEntrypoint(),
         env: {
           // Entrypoint maps these to nginx config sed replacements
