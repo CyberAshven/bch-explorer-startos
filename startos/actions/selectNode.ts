@@ -9,8 +9,8 @@ const nodeInputSpec = InputSpec.of({
     description: 'Select which BCH full node the explorer should connect to.',
     default: 'bitcoincashd',
     values: {
-      bitcoincashd: 'Bitcoin Cash Node (BCHN)',
-      bchd: 'Bitcoin Cash Daemon (BCHD)',
+      bitcoincashd: 'Bitcoin Cash Node',
+      bchd: 'Bitcoin Cash Daemon',
       flowee: 'Flowee the Hub',
     },
   }),

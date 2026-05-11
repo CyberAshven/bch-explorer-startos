@@ -9,6 +9,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
   const store = await storeJson.read().once()
   const dbPassword = store?.dbPassword ?? 'explorer'
   const nodePackageId = store?.nodePackageId ?? 'bitcoincashd'
+  const network = (store?.network ?? 'mainnet') as
+    | 'mainnet'
+    | 'testnet4'
+    | 'chipnet'
+    | 'scalenet'
   const nodeHost = `${nodePackageId}.startos`
   // BCHD serves RPC over native TLS; the plaintext stunnel proxy on port 8334
   // forwards to its TLS RPC on 8332 internally. Melroy's backend has no TLS
@@ -120,7 +125,7 @@ p('/backend/package/api/bitcoin/bitcoin-api.js',
         command: ['./start.sh'],
         env: {
           EXPLORER_BACKEND: 'electrum',
-          EXPLORER_NETWORK: 'mainnet',
+          EXPLORER_NETWORK: network,
           EXPLORER_INDEXING_BLOCKS_AMOUNT: '-1',
           CORE_RPC_HOST: nodeHost,
           CORE_RPC_PORT: nodeRpcPort,
@@ -163,9 +168,11 @@ p('/backend/package/api/bitcoin/bitcoin-api.js',
           BACKEND_MAINNET_HTTP_PORT: '8999',
           FRONTEND_HTTP_PORT: String(webPort),
           // Entrypoint maps these to __VAR__ exports for envsubst on config.js
-          MAINNET_ENABLED: 'true',
+          // Only the selected network is enabled; ROOT_NETWORK pins the UI
+          // to that network. Mainnet keeps ROOT_NETWORK empty for default routing.
+          MAINNET_ENABLED: network === 'mainnet' ? 'true' : 'false',
           TESTNET_ENABLED: 'false',
-          TESTNET4_ENABLED: 'false',
+          TESTNET4_ENABLED: network === 'testnet4' ? 'true' : 'false',
           SIGNET_ENABLED: 'false',
           ITEMS_PER_PAGE: '10',
           KEEP_BLOCKS_AMOUNT: '8',
@@ -175,7 +182,7 @@ p('/backend/package/api/bitcoin/bitcoin-api.js',
           MIN_BLOCK_SIZE_UNITS: '32000000',
           MEMPOOL_BLOCKS_AMOUNT: '1',
           BASE_MODULE: 'explorer',
-          ROOT_NETWORK: '',
+          ROOT_NETWORK: network === 'mainnet' ? '' : network,
           WEBSITE_URL: 'https://bchexplorer.cash',
           MINING_DASHBOARD: 'true',
           AUDIT: 'false',

@@ -7,6 +7,7 @@ export const shape = z
     initialized: z.boolean().catch(false),
     nodePackageId: z.string().catch('bitcoincashd'),
     nodeConfirmed: z.boolean().catch(true),
+    network: z.enum(['mainnet', 'testnet4', 'chipnet', 'scalenet']).catch('mainnet'),
     indexer: z.enum(['fulcrum']).nullable().catch(null),
   })
   .strip()
