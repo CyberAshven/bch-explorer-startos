@@ -79,7 +79,7 @@ p('/backend/package/api/blocks.js',
   'const verboseBlock = await bitcoin_client_1.default.getBlock(blockHash, 2); verboseBlock.tx = verboseBlock.tx || verboseBlock.rawtx || [];');
 p('/backend/package/api/blocks.js',
   /if \\(!block\\.stale\\) \\{\\s*return bitcoin_client_1\\.default\\.getBlockStats\\(block\\.id\\);\\s*\\}/,
-  "if (!block.stale) {\\n            try { return await bitcoin_client_1.default.getBlockStats(block.id); }\\n            catch (e) { const m=((e&&e.message)||'')+''; const c=e&&e.code; if (c!==-32601 && !/method not found/i.test(m)) throw e; console.warn('[bchd-shim] getblockstats unsupported; computing locally for', block.id); }\\n        }");
+  "if (!block.stale) {\\n            try { return await bitcoin_client_1.default.getBlockStats(block.id); }\\n            catch (e) { const m=((e&&e.message)||'')+''; const c=e&&e.code; if (c!==-32601 && !/method not found/i.test(m)) throw e; /* [bchd-shim] getblockstats unsupported; computing locally (silenced to avoid log spam during indexing) */ }\\n        }");
 p('/backend/package/api/bitcoin/bitcoin-api.js',
   /\\.getRawTransaction\\(txId, 2, '', true\\)/,
   '.getRawTransaction(txId, true)');
@@ -91,7 +91,7 @@ p('/backend/package/indexer.js',
   "let indexes; try { indexes = await bitcoin_client_1.default.getIndexInfo(); } catch (e) { const m=((e&&e.message)||'')+''; const c=e&&e.code; if (c!==-32601 && !/method not found|unimplemented/i.test(m)) throw e; console.warn('[bchd-shim] getindexinfo unsupported; assuming no BCHN indexes'); indexes = {}; }");
 p('/backend/package/api/chain-tips.js',
   /this\\.chainTips = await bitcoin_client_1\\.default\\.getChainTips\\(\\);/,
-  "try { this.chainTips = await bitcoin_client_1.default.getChainTips(); } catch (e) { const m=((e&&e.message)||'')+''; const c=e&&e.code; if (c!==-32601 && !/method not found|unimplemented/i.test(m)) throw e; console.warn('[bchd-shim] getchaintips unsupported; orphan tracking disabled'); this.chainTips = []; }");`,
+  "try { this.chainTips = await bitcoin_client_1.default.getChainTips(); } catch (e) { const m=((e&&e.message)||'')+''; const c=e&&e.code; if (c!==-32601 && !/method not found|unimplemented/i.test(m)) throw e; if (!global.__bchdShimChainTipsLogged) { console.warn('[bchd-shim] getchaintips unsupported; orphan tracking disabled (logged once)'); global.__bchdShimChainTipsLogged = true; } this.chainTips = []; }");`,
   ])
 
   return sdk.Daemons.of(effects)
