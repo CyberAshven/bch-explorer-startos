@@ -107,7 +107,20 @@ fs.writeFileSync('/backend/package/api/bitcoin/cashaddr-shim.js', SHIM);
 // nullish-only filtering so legitimate zero values still propagate.
 p('/backend/package/api/websocket-handler.js',
   /if \\(data\\[property\\]\\) \\{/,
-  'if (data[property] != null) {');`,
+  'if (data[property] != null) {');
+// [bchd-shim] blocks.tx_count column is smallint(5) unsigned (max 65535) but BCH blocks
+// can exceed that (e.g. block 840002 has 72,174 txs). The miner indexer hits an
+// out-of-range INSERT, retries forever, never indexes anything, and the dashboard
+// widgets (Minimum fee, Memory Usage, Unconfirmed, Incoming Transactions chart) stay
+// blank because they consume indexed-state data. Two fixes:
+//   1. Widen the column for fresh installs (migration text in $createMissingTablesAndIndexes).
+//   2. Force an idempotent ALTER at startup for installs that already passed that migration.
+p('/backend/package/api/database-migration.js',
+  /tx_count\` smallint unsigned/g,
+  'tx_count\` int unsigned');
+p('/backend/package/api/database-migration.js',
+  /async \\$initializeOrMigrateDatabase\\(\\) \\{\\s*logger_1\\.default\\.debug\\('MIGRATIONS: Running migrations'\\);/,
+  "async $initializeOrMigrateDatabase() { logger_1.default.debug('MIGRATIONS: Running migrations'); try { await database_1.default.query('ALTER TABLE blocks MODIFY \`tx_count\` int unsigned NOT NULL DEFAULT 0'); } catch (e) { /* table may not exist yet on first run; smallint→int alter is idempotent and harmless to retry */ }");`,
   ])
 
   return sdk.Daemons.of(effects)
