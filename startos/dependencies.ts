@@ -14,9 +14,11 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
     'bitcoincashd:autoconfig',
     'bchd:autoconfig',
     'flowee:autoconfig',
+    'knuth-bch:autoconfig',
     'bitcoincashd-autoconfig',
     'bchd-autoconfig',
     'flowee-autoconfig',
+    'knuth-bch-autoconfig',
   )
 
   if (store?.nodeConfirmed) {
@@ -48,6 +50,10 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
           'REST API must be enabled for BCH Explorer to function properly.',
         when: { condition: 'input-not-matches', once: false },
       })
+    } else if (nodePackageId === 'knuth-bch') {
+      // Knuth: no JSON-RPC in upstream yet — nothing meaningful to
+      // autoconfigure today. Dep is declared below; explorer will
+      // surface a clear RPC error until upstream RPC ships.
     } else {
       // BCHN: ensure pruning off, txindex on, ZMQ on
       await sdk.action.createTask(effects, nodePackageId, bchnAutoconfig, 'critical', {
@@ -84,6 +90,12 @@ export const setDependencies = sdk.setupDependencies(async ({ effects }) => {
     deps['flowee'] = {
       kind: 'running',
       versionRange: '>=2026.2.0:0',
+      healthChecks: ['primary'],
+    }
+  } else if (nodePackageId === 'knuth-bch') {
+    deps['knuth-bch'] = {
+      kind: 'running',
+      versionRange: '>=0.80.0:0',
       healthChecks: ['primary'],
     }
   } else {
