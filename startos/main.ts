@@ -68,6 +68,8 @@ export const main = sdk.setupMain(async ({ effects }) => {
   // - getblockstats RPC is not implemented (-32601 Method not found); fall back
   //   to the explorer's existing local stats computation (the stale-block path)
   // - getrawtransaction only accepts (txid, verbose), not the 4-param form
+  // - getindexinfo is BCHN-only; return {} so the indexer skips BCHN-index tasks
+  // - getchaintips is unimplemented on BCHD; return [] so orphan tracking no-ops
   await apiSub.exec([
     'node', '-e',
     `const fs=require('fs');
@@ -83,7 +85,13 @@ p('/backend/package/api/bitcoin/bitcoin-api.js',
   '.getRawTransaction(txId, true)');
 p('/backend/package/api/bitcoin/bitcoin-api.js',
   /tx_count: block\\.nTx,/,
-  'tx_count: (block.nTx != null ? block.nTx : ((block.tx && block.tx.length) || (block.rawtx && block.rawtx.length) || 0)),');`,
+  'tx_count: (block.nTx != null ? block.nTx : ((block.tx && block.tx.length) || (block.rawtx && block.rawtx.length) || 0)),');
+p('/backend/package/indexer.js',
+  /const indexes = await bitcoin_client_1\\.default\\.getIndexInfo\\(\\);/,
+  "let indexes; try { indexes = await bitcoin_client_1.default.getIndexInfo(); } catch (e) { const m=((e&&e.message)||'')+''; const c=e&&e.code; if (c!==-32601 && !/method not found|unimplemented/i.test(m)) throw e; console.warn('[bchd-shim] getindexinfo unsupported; assuming no BCHN indexes'); indexes = {}; }");
+p('/backend/package/api/chain-tips.js',
+  /this\\.chainTips = await bitcoin_client_1\\.default\\.getChainTips\\(\\);/,
+  "try { this.chainTips = await bitcoin_client_1.default.getChainTips(); } catch (e) { const m=((e&&e.message)||'')+''; const c=e&&e.code; if (c!==-32601 && !/method not found|unimplemented/i.test(m)) throw e; console.warn('[bchd-shim] getchaintips unsupported; orphan tracking disabled'); this.chainTips = []; }");`,
   ])
 
   return sdk.Daemons.of(effects)
@@ -160,7 +168,7 @@ p('/backend/package/api/bitcoin/bitcoin-api.js',
         'web-sub',
       ),
       exec: {
-          // v3.10.8 upstream images from registry.melroy.org
+          // v3.11.0 upstream images from registry.melroy.org
         command: sdk.useEntrypoint(),
         env: {
           // Entrypoint maps these to nginx config sed replacements
