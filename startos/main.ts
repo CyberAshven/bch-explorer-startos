@@ -177,12 +177,46 @@ p('/backend/package/api/websocket-handler.js',
       requires: ['db'],
     })
     .addDaemon('web', {
-      subcontainer: await sdk.SubContainer.of(
-        effects,
-        { imageId: 'frontend' },
-        sdk.Mounts.of(),
-        'web-sub',
-      ),
+      subcontainer: await (async () => {
+        const webSub = await sdk.SubContainer.of(
+          effects,
+          { imageId: 'frontend' },
+          sdk.Mounts.of(),
+          'web-sub',
+        )
+        // [frontend-shim] The hex2ascii pipe in the compiled Angular bundle only strips
+        // U+FFFD and literal "\0" sequences; raw control bytes (0x01-0x1F, 0x7F-0x9F) in
+        // coinbase scriptsig and OP_RETURN payloads still render as box/gibberish glyphs
+        // ("f~j] +j{ ckpool/..."). The repo's own miner-tag parser already strips
+        // /[\x00-\x1F\x7F-\x9F]/ for the same reason; mirror that here so coinbase tooltips
+        // and tx scriptsig hovers show clean ASCII like "/ckpool/mined by ... on 5tratumOS/".
+        // Per-locale chunks are emitted by Angular i18n; patch every chunk that contains the
+        // pipe's TextDecoder() chain so all language bundles are covered.
+        // The frontend image is Alpine-based and ships only sh, sed, awk
+        // (no node, no perl, no python). GNU sed mangles `\x00` notation in
+        // the replacement (interprets it as a literal NUL byte), so use
+        // busybox awk reading the needle/replacement from environment vars
+        // (which preserves bytes verbatim — no escape interpretation).
+        await webSub.exec([
+          'sh', '-c',
+          [
+            `NEEDLE='.replace(/\\\\0/g,"")'`,
+            `REPL='.replace(/\\\\0/g,"").replace(/[\\x00-\\x1F\\x7F-\\x9F]/g,"")'`,
+            `MARK='/[\\x00-\\x1F'`,
+            `export NEEDLE REPL MARK`,
+            `total=0`,
+            `for f in $(find /var/www/explorer/browser -name 'chunk-*.js' 2>/dev/null); do ` +
+              `grep -F -q "$MARK" "$f" && continue; ` +
+              `grep -F -q "$NEEDLE" "$f" || continue; ` +
+              `awk 'BEGIN{n=ENVIRON["NEEDLE"];r=ENVIRON["REPL"];nl=length(n);}{line=$0;out="";while((p=index(line,n))>0){out=out substr(line,1,p-1) r;line=substr(line,p+nl);}print out line;}' "$f" > "$f.tmp" 2>/dev/null ` +
+              `&& mv "$f.tmp" "$f" ` +
+              `&& total=$((total+1)); ` +
+            `done`,
+            `echo "[frontend-shim] patched $total hex2ascii chunk(s)"`,
+          ].join('; '),
+        ])
+        return webSub
+      })(),
       exec: {
           // v3.11.0 upstream images from registry.melroy.org
         command: sdk.useEntrypoint(),
