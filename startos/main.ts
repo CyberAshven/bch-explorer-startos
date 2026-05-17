@@ -62,6 +62,14 @@ export const main = sdk.setupMain(async ({ effects }) => {
     console.warn('Could not read node store.json — using defaults')
   }
 
+  // Fix cache directory permissions — the volume subpath is created with restrictive
+  // ownership by the Start9 runtime; the backend process runs as a non-root user and
+  // cannot write './cache/tmp-cache.json' without this chmod.
+  await apiSub.exec([
+    'sh', '-c',
+    'mkdir -p /backend/cache && chmod 777 /backend/cache && echo "[cache-fix] /backend/cache permissions set"',
+  ])
+
   // BCHD compatibility patches:
   // - getblock(verbosity=2) returns `rawtx` not `tx`
   // - getblock does not include `nTx`; derive tx_count from tx/rawtx array length
@@ -256,7 +264,7 @@ p('/backend/package/api/database-migration.js',
           ROOT_NETWORK: network === 'mainnet' ? '' : network,
           WEBSITE_URL: 'https://bchexplorer.cash',
           MINING_DASHBOARD: 'true',
-          AUDIT: 'false',
+          AUDIT: 'true',
           MAINNET_BLOCK_AUDIT_START_HEIGHT: '0',
           TESTNET_BLOCK_AUDIT_START_HEIGHT: '0',
           SIGNET_BLOCK_AUDIT_START_HEIGHT: '0',
