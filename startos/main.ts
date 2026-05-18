@@ -104,7 +104,7 @@ p('/backend/package/api/chain-tips.js',
 // Install a tiny cashaddr->scriptPubKey decoder and wrap validateAddress to enrich the response.
 // Also patch getMempoolInfo (BCHD returns only {size,bytes}) and getRawMemPool true verbose entries
 // (BCHD returns {size,fee,time,height,depends,...} — translate to Core's {vsize,fees:{base},ancestor*,descendant*,wtxid,spentby}).
-const SHIM = "module.exports=function(t){if(t.__cashaddrShim)return;t.__cashaddrShim=true;const o=t.validateAddress.bind(t);const C='qpzry9x8gf2tvdw0s3jn54khce6mua7l';function decCA(a){try{const i=a.indexOf(':');const p=(i>=0?a.slice(i+1):a).toLowerCase();const d=[];for(const c of p){const v=C.indexOf(c);if(v<0)return null;d.push(v);}if(d.length<9)return null;const p5=d.slice(0,d.length-8);let ac=0,b=0;const out=[];for(const v of p5){ac=((ac<<5)|v)&0xffff;b+=5;if(b>=8){b-=8;out.push((ac>>b)&0xff);}}if(!out.length)return null;const ver=out[0],ty=(ver>>3)&0x1f,h=out.slice(1);const hx=h.map(x=>x.toString(16).padStart(2,'0')).join('');if(ty===0&&h.length===20)return '76a914'+hx+'88ac';if(ty===1&&h.length===20)return 'a914'+hx+'87';if(ty===1&&h.length===32)return 'aa20'+hx+'87';return null;}catch(e){return null;}}const B='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';function decLG(a){try{let n=0n;for(const c of a){const v=B.indexOf(c);if(v<0)return null;n=n*58n+BigInt(v);}let hex=n.toString(16);if(hex.length%2)hex='0'+hex;const by=[];for(let i=0;i<hex.length;i+=2)by.push(parseInt(hex.substr(i,2),16));for(const c of a){if(c==='1')by.unshift(0);else break;}if(by.length!==25)return null;const v=by[0],hx=by.slice(1,21).map(x=>x.toString(16).padStart(2,'0')).join('');if(v===0)return '76a914'+hx+'88ac';if(v===5)return 'a914'+hx+'87';return null;}catch(e){return null;}}t.validateAddress=async function(a){const x=await o(a);if(x&&x.isvalid&&!x.scriptPubKey){const s=decCA(x.address||a)||decLG(x.address||a);if(s)x.scriptPubKey=s;}return x;};const omi=t.getMempoolInfo&&t.getMempoolInfo.bind(t);if(omi){t.getMempoolInfo=async function(){const r=await omi();if(!r)return r;const sz=r.size||0,by=r.bytes||0;if(r.usage==null)r.usage=by*3;if(r.maxmempool==null)r.maxmempool=300000000;if(r.mempoolminfee==null)r.mempoolminfee=0.00001;if(r.minrelaytxfee==null)r.minrelaytxfee=0.00001;if(r.total_fee==null)r.total_fee=0;if(r.loaded==null)r.loaded=true;return r;};}const orm=t.getRawMemPool&&t.getRawMemPool.bind(t);if(orm){t.getRawMemPool=async function(verbose){const r=await orm(verbose);if(!verbose||!r||typeof r!=='object'||Array.isArray(r))return r;for(const k in r){const e=r[k];if(!e||typeof e!=='object')continue;const fee=typeof e.fee==='number'?e.fee:0;const sz=e.size||0;if(e.vsize==null)e.vsize=sz;if(!e.fees||typeof e.fees!=='object')e.fees={base:fee,modified:fee,ancestor:fee,descendant:fee};const dep=Array.isArray(e.depends)?e.depends:[];if(e.ancestorcount==null)e.ancestorcount=dep.length+1;if(e.descendantcount==null)e.descendantcount=1;if(e.ancestorsize==null)e.ancestorsize=sz;if(e.descendantsize==null)e.descendantsize=sz;if(e.wtxid==null)e.wtxid=k;if(!Array.isArray(e.spentby))e.spentby=[];}return r;};}};";
+const SHIM = "module.exports=function(t){if(t.__cashaddrShim)return;t.__cashaddrShim=true;const o=t.validateAddress.bind(t);const C='qpzry9x8gf2tvdw0s3jn54khce6mua7l';function decCA(a){try{const i=a.indexOf(':');const p=(i>=0?a.slice(i+1):a).toLowerCase();const d=[];for(const c of p){const v=C.indexOf(c);if(v<0)return null;d.push(v);}if(d.length<9)return null;const p5=d.slice(0,d.length-8);let ac=0,b=0;const out=[];for(const v of p5){ac=((ac<<5)|v)&0xffff;b+=5;if(b>=8){b-=8;out.push((ac>>b)&0xff);}}if(!out.length)return null;const ver=out[0],ty=(ver>>3)&0x1f,h=out.slice(1);const hx=h.map(x=>x.toString(16).padStart(2,'0')).join('');if(ty===0&&h.length===20)return '76a914'+hx+'88ac';if(ty===1&&h.length===20)return 'a914'+hx+'87';if(ty===1&&h.length===32)return 'aa20'+hx+'87';return null;}catch(e){return null;}}const B='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';function decLG(a){try{let n=0n;for(const c of a){const v=B.indexOf(c);if(v<0)return null;n=n*58n+BigInt(v);}let hex=n.toString(16);if(hex.length%2)hex='0'+hex;const by=[];for(let i=0;i<hex.length;i+=2)by.push(parseInt(hex.substr(i,2),16));for(const c of a){if(c==='1')by.unshift(0);else break;}if(by.length!==25)return null;const v=by[0],hx=by.slice(1,21).map(x=>x.toString(16).padStart(2,'0')).join('');if(v===0)return '76a914'+hx+'88ac';if(v===5)return 'a914'+hx+'87';return null;}catch(e){return null;}}t.validateAddress=async function(a){const x=await o(a);if(x&&x.isvalid&&!x.scriptPubKey){const s=decCA(x.address||a)||decLG(x.address||a);if(s)x.scriptPubKey=s;}return x;};const omi=t.getMempoolInfo&&t.getMempoolInfo.bind(t);if(omi){t.getMempoolInfo=async function(){const r=await omi();if(!r)return r;const sz=r.size||0,by=r.bytes||0;if(r.usage==null)r.usage=by*3;if(r.maxmempool==null)r.maxmempool=300000000;if(r.mempoolminfee==null)r.mempoolminfee=0.00001;if(r.minrelaytxfee==null)r.minrelaytxfee=0.00001;if(r.total_fee==null)r.total_fee=0;if(r.loaded==null)r.loaded=true;return r;};}const orm=t.getRawMemPool&&t.getRawMemPool.bind(t);if(orm){t.getRawMemPool=async function(verbose){const r=await orm(verbose);if(!verbose||!r||typeof r!=='object'||Array.isArray(r))return r;for(const k in r){const e=r[k];if(!e||typeof e!=='object')continue;const fee=typeof e.fee==='number'?e.fee:0;const sz=e.size||0;if(e.feePerSize==null){e.feePerSize=sz>0?(fee*1e8/sz):0;}if(e.vsize==null)e.vsize=sz;if(!e.fees||typeof e.fees!=='object')e.fees={base:fee,modified:fee,ancestor:fee,descendant:fee};const dep=Array.isArray(e.depends)?e.depends:[];if(e.ancestorcount==null)e.ancestorcount=dep.length+1;if(e.descendantcount==null)e.descendantcount=1;if(e.ancestorsize==null)e.ancestorsize=sz;if(e.descendantsize==null)e.descendantsize=sz;if(e.wtxid==null)e.wtxid=k;if(!Array.isArray(e.spentby))e.spentby=[];}return r;};}};";
 fs.writeFileSync('/backend/package/api/bitcoin/cashaddr-shim.js', SHIM);
 { const f='/backend/package/api/bitcoin/bitcoin-client.js'; const c=fs.readFileSync(f,'utf8'); if(!c.includes('cashaddr-shim')){ fs.writeFileSync(f, c + "\\nrequire('./cashaddr-shim')(exports.default);\\n"); console.log('[bchd-shim] compat-shim installed (cashaddr+mempool)'); } else { console.log('[bchd-shim] compat-shim no-op'); } }
 // [bchd-shim] websocket-handler.ts updateSocketDataFields uses truthy check 'if (data[property])'
@@ -128,22 +128,15 @@ p('/backend/package/api/database-migration.js',
   'tx_count\` int unsigned');
 p('/backend/package/api/database-migration.js',
   /async \\$initializeOrMigrateDatabase\\(\\) \\{\\s*logger_1\\.default\\.debug\\('MIGRATIONS: Running migrations'\\);/,
-  "async $initializeOrMigrateDatabase() { logger_1.default.debug('MIGRATIONS: Running migrations'); try { await database_1.default.query('ALTER TABLE blocks MODIFY \`tx_count\` int unsigned NOT NULL DEFAULT 0'); } catch (e) { /* table may not exist yet on first run; smallint→int alter is idempotent and harmless to retry */ }");`,
-  ])
-
-  // [bch-shim] statistics.js filters memPoolArray by truthy feePerSize, dropping all
-  // zero-fee BCH transactions and writing all-zero statistics records. This produces a
-  // flat Incoming Transactions chart. Fix with a separate exec to avoid template-literal
-  // escape issues that prevent the inline p() patch from applying.
-  await apiSub.exec([
-    'sh', '-c',
-    `FILE=/backend/package/api/statistics/statistics.js; ` +
-    `MARK='tx.feePerSize != null'; ` +
-    `if ! grep -qF "$MARK" "$FILE" 2>/dev/null; then ` +
-      `sed -i 's/memPoolArray\\.filter((tx) => tx\\.feePerSize)/memPoolArray.filter((tx) => tx.feePerSize != null)/g' "$FILE" ` +
-      `&& echo "[bch-shim] statistics.js zero-fee filter patched" ` +
-      `|| echo "[bch-shim] statistics.js zero-fee filter sed failed"; ` +
-    `else echo "[bch-shim] statistics.js zero-fee filter already applied"; fi`,
+  "async $initializeOrMigrateDatabase() { logger_1.default.debug('MIGRATIONS: Running migrations'); try { await database_1.default.query('ALTER TABLE blocks MODIFY \`tx_count\` int unsigned NOT NULL DEFAULT 0'); } catch (e) { /* table may not exist yet on first run; smallint→int alter is idempotent and harmless to retry */ }");
+// [bchd-shim] statistics.js filters memPoolArray by truthy tx.feePerSize, dropping all
+// transactions where feePerSize is undefined (BCHD entries don't include this field).
+// The getRawMemPool shim above now sets feePerSize=sat/byte so zero-fee txs get feePerSize=0.
+// Use fs.writeFileSync via p() — sed -i fails on overlayfs (rename of squashfs-backed
+// directory: "Directory not empty") so the sed-based approach silently did nothing.
+p('/backend/package/api/statistics/statistics.js',
+  /memPoolArray\\.filter\\(\\(tx\\) => tx\\.feePerSize\\)/,
+  'memPoolArray.filter((tx) => tx.feePerSize != null)');`,
   ])
 
   return sdk.Daemons.of(effects)
@@ -295,11 +288,11 @@ p('/backend/package/api/database-migration.js',
           WEBSITE_URL: 'https://bchexplorer.cash',
           MINING_DASHBOARD: 'true',
           AUDIT: 'true',
-          MAINNET_BLOCK_AUDIT_START_HEIGHT: '0',
+          MAINNET_BLOCK_AUDIT_START_HEIGHT: '951500',
           TESTNET_BLOCK_AUDIT_START_HEIGHT: '0',
           SIGNET_BLOCK_AUDIT_START_HEIGHT: '0',
           TESTNET4_BLOCK_AUDIT_START_HEIGHT: '0',
-          MAINNET_TX_FIRST_SEEN_START_HEIGHT: '0',
+          MAINNET_TX_FIRST_SEEN_START_HEIGHT: '951500',
           TESTNET_TX_FIRST_SEEN_START_HEIGHT: '0',
           TESTNET4_TX_FIRST_SEEN_START_HEIGHT: '0',
           SIGNET_TX_FIRST_SEEN_START_HEIGHT: '0',
