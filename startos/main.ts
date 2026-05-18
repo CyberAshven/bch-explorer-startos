@@ -218,6 +218,19 @@ p('/backend/package/api/database-migration.js',
         // the replacement (interprets it as a literal NUL byte), so use
         // busybox awk reading the needle/replacement from environment vars
         // (which preserves bytes verbatim — no escape interpretation).
+        // [frontend-shim] The Melroy frontend image has no mining-pools SVG assets.
+        // Inject a nginx location block that proxies /resources/mining-pools/ to
+        // the upstream bchexplorer.cash so pool logos render in the dashboard.
+        await webSub.exec([
+          'sh', '-c',
+          `CONF=/etc/nginx/conf.d/nginx-explorer.conf; ` +
+          `MARKER='location /resources/mining-pools/'; ` +
+          `if ! grep -qF "$MARKER" "$CONF" 2>/dev/null; then ` +
+            `sed -i 's|location /resources {|location /resources/mining-pools/ {\\n\\t\\tproxy_pass https://bchexplorer.cash/resources/mining-pools/;\\n\\t\\tproxy_ssl_server_name on;\\n\\t\\texpires 7d;\\n\\t\\tadd_header Cache-Control "public";\\n\\t}\\n\\tlocation /resources {|' "$CONF" ` +
+            `&& echo "[frontend-shim] mining-pools proxy added" ` +
+            `|| echo "[frontend-shim] mining-pools proxy sed failed"; ` +
+          `else echo "[frontend-shim] mining-pools proxy already present"; fi`,
+        ])
         await webSub.exec([
           'sh', '-c',
           [
