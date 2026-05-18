@@ -128,7 +128,15 @@ p('/backend/package/api/database-migration.js',
   'tx_count\` int unsigned');
 p('/backend/package/api/database-migration.js',
   /async \\$initializeOrMigrateDatabase\\(\\) \\{\\s*logger_1\\.default\\.debug\\('MIGRATIONS: Running migrations'\\);/,
-  "async $initializeOrMigrateDatabase() { logger_1.default.debug('MIGRATIONS: Running migrations'); try { await database_1.default.query('ALTER TABLE blocks MODIFY \`tx_count\` int unsigned NOT NULL DEFAULT 0'); } catch (e) { /* table may not exist yet on first run; smallint→int alter is idempotent and harmless to retry */ }");`,
+  "async $initializeOrMigrateDatabase() { logger_1.default.debug('MIGRATIONS: Running migrations'); try { await database_1.default.query('ALTER TABLE blocks MODIFY \`tx_count\` int unsigned NOT NULL DEFAULT 0'); } catch (e) { /* table may not exist yet on first run; smallint→int alter is idempotent and harmless to retry */ }");
+// [bch-shim] statistics.js filters memPoolArray by 'tx.feePerSize' (truthy check).
+// On BCH, virtually all transactions have fee=0, so feePerSize=0 is falsy and every
+// tx is filtered out. The module then sees an empty mempool and writes all-zero
+// statistics records — causing the Incoming Transactions chart to show a flat line.
+// Fix: use != null so zero-fee transactions are included in the size/fee histograms.
+p('/backend/package/api/statistics/statistics.js',
+  /memPoolArray = memPoolArray\.filter\(\(tx\) => tx\.feePerSize\);/,
+  'memPoolArray = memPoolArray.filter((tx) => tx.feePerSize != null);');`,
   ])
 
   return sdk.Daemons.of(effects)
@@ -185,6 +193,8 @@ p('/backend/package/api/database-migration.js',
           DATABASE_USERNAME: 'explorer',
           DATABASE_PASSWORD: dbPassword,
           STATISTICS_ENABLED: 'true',
+          EXPLORER_AUDIT: 'true',
+          EXPLORER_GOGGLES_INDEXING: 'true',
         },
       },
       ready: {
