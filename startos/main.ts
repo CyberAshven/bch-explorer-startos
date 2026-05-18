@@ -128,15 +128,22 @@ p('/backend/package/api/database-migration.js',
   'tx_count\` int unsigned');
 p('/backend/package/api/database-migration.js',
   /async \\$initializeOrMigrateDatabase\\(\\) \\{\\s*logger_1\\.default\\.debug\\('MIGRATIONS: Running migrations'\\);/,
-  "async $initializeOrMigrateDatabase() { logger_1.default.debug('MIGRATIONS: Running migrations'); try { await database_1.default.query('ALTER TABLE blocks MODIFY \`tx_count\` int unsigned NOT NULL DEFAULT 0'); } catch (e) { /* table may not exist yet on first run; smallint→int alter is idempotent and harmless to retry */ }");
-// [bch-shim] statistics.js filters memPoolArray by 'tx.feePerSize' (truthy check).
-// On BCH, virtually all transactions have fee=0, so feePerSize=0 is falsy and every
-// tx is filtered out. The module then sees an empty mempool and writes all-zero
-// statistics records — causing the Incoming Transactions chart to show a flat line.
-// Fix: use != null so zero-fee transactions are included in the size/fee histograms.
-p('/backend/package/api/statistics/statistics.js',
-  /memPoolArray = memPoolArray\.filter\(\(tx\) => tx\.feePerSize\);/,
-  'memPoolArray = memPoolArray.filter((tx) => tx.feePerSize != null);');`,
+  "async $initializeOrMigrateDatabase() { logger_1.default.debug('MIGRATIONS: Running migrations'); try { await database_1.default.query('ALTER TABLE blocks MODIFY \`tx_count\` int unsigned NOT NULL DEFAULT 0'); } catch (e) { /* table may not exist yet on first run; smallint→int alter is idempotent and harmless to retry */ }");`,
+  ])
+
+  // [bch-shim] statistics.js filters memPoolArray by truthy feePerSize, dropping all
+  // zero-fee BCH transactions and writing all-zero statistics records. This produces a
+  // flat Incoming Transactions chart. Fix with a separate exec to avoid template-literal
+  // escape issues that prevent the inline p() patch from applying.
+  await apiSub.exec([
+    'sh', '-c',
+    `FILE=/backend/package/api/statistics/statistics.js; ` +
+    `MARK='tx.feePerSize != null'; ` +
+    `if ! grep -qF "$MARK" "$FILE" 2>/dev/null; then ` +
+      `sed -i 's/memPoolArray\\.filter((tx) => tx\\.feePerSize)/memPoolArray.filter((tx) => tx.feePerSize != null)/g' "$FILE" ` +
+      `&& echo "[bch-shim] statistics.js zero-fee filter patched" ` +
+      `|| echo "[bch-shim] statistics.js zero-fee filter sed failed"; ` +
+    `else echo "[bch-shim] statistics.js zero-fee filter already applied"; fi`,
   ])
 
   return sdk.Daemons.of(effects)
